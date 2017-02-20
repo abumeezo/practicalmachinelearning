@@ -1,0 +1,74 @@
+---
+title: "Rusan Machine Learning Final"
+author: "Zeid M. Rusan"
+date: "2/19/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Summary
+This report concerns the ability to predict exercise "correctness", or how well a routine was performed, based on on-body sensors. As suggested by Velloso et al. 2013, a Random Forest approach was used as a model because of "characteristic noise present in the sensor data". Non-NA sensor training data with 10-fold cross validation was used to train the random forest model, which was then used to predict exercise performance in test cases. The training set accuracy was **~99.53%** for the average model from 10 cross validations, which greatly minimized the out-of-sample error measured with the test data. Overall, the model was a powerful classifier of exericse accuracy when given new data.
+
+##Methods
+* **Data loading and feature selection:** 
+
+  First data is read in, then columns with NA ("NA" or blank values) are removed. Next, time stamp and window data are excluded since they should not have anything to do with the "classe" variable type.
+```{r dataLoad,cache=T}
+  training <- read.csv("pml-training.csv",na.strings = c("","NA"))
+  nonNAs <- which(apply(training,2,function(x) sum(is.na(x)))==0)
+  training <- training[,nonNAs]
+  testing <- read.csv("pml-testing.csv",na.strings = c("","NA"))
+  testing <- testing[,nonNAs]
+  variablesToKeep <- c(2,8:60) #User name and non-time stamp or window data + classe variable
+  training <- training[,variablesToKeep]
+  trainingX <- training[,-54]
+  trainingY <- training[,54]
+  testing <- testing[,variablesToKeep]
+  testingX <- testing[,-54]
+  testingY <- testing[,54]
+```
+* **Enable parallel processing using multiple cores for cross validation with caret:** 
+
+This modification greatly increases machine learning efficiency and allowed for more cross validation within a reasonable time period.
+```{r parallel}
+  library(caret)
+  library(parallel)
+  library(doParallel)
+  cluster <- makeCluster(detectCores() - 1) # leave one free corse for OS
+  registerDoParallel(cluster)
+  fitControl <- trainControl(method = "cv",number = 10,allowParallel = TRUE)
+```
+
+* **Build model using cross validation with training set:**
+
+A random forest with 10-fold cross validation was used to optimize the model. Cross validation training subsets were of size ~17659, and cross validation test subsets were of size ~ 1963. The model was used downstream for predictions using test cases.
+```{r modeling,cache=T}
+  fit <- train(trainingX,trainingY, method="rf",data=training,trControl = fitControl)
+  stopCluster(cluster)
+  registerDoSEQ()
+```
+
+* **The optimal model was used for prediction using test cases:**
+```{r predict}
+  prediction <- predict(fit,newdata = testing)
+```
+
+##Results
+* **A random forest model using 27 variables accurately predicts training data:**
+
+The model accuracy (average of resamples) was **~99.53%** using the training data.
+```{r modelResult}
+  fit
+  fit$resample
+  confusionMatrix.train(fit)
+```
+
+* **The model generalizes well to the 20 test cases:**
+
+Because we used cross-validation with random forests, I expect the out-of-sample error rate to roughly match those of the training set (~ 100 - 99.53 = 0.47%). Thus, the model is sufficient for prediction in new data test cases. Indeed, the model predicted 20/20 quick classifications correctly.
+```{r predictionResult}
+  prediction
+```
