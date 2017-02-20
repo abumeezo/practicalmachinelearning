@@ -2,7 +2,9 @@
 title: "Rusan Machine Learning Final"
 author: "Zeid M. Rusan"
 date: "2/19/2017"
-output: html_document
+output: 
+  html_document: 
+    keep_md: yes
 ---
 
 ```{r setup, include=FALSE}

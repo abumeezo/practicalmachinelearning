@@ -149,30 +149,18 @@ $(document).ready(function () {
 <li><strong>Enable parallel processing using multiple cores for cross validation with caret:</strong></li>
 </ul>
 <p>This modification greatly increases machine learning efficiency and allowed for more cross validation within a reasonable time period.</p>
-<pre class="r"><code>  library(caret)</code></pre>
-<pre><code>## Loading required package: lattice</code></pre>
-<pre><code>## Loading required package: ggplot2</code></pre>
-<pre class="r"><code>  library(parallel)
-  library(doParallel)</code></pre>
-<pre><code>## Loading required package: foreach</code></pre>
-<pre><code>## Loading required package: iterators</code></pre>
-<pre class="r"><code>  cluster &lt;- makeCluster(detectCores() - 1) # leave one free corse for OS
+<pre class="r"><code>  library(caret)
+  library(parallel)
+  library(doParallel)
+  cluster &lt;- makeCluster(detectCores() - 1) # leave one free corse for OS
   registerDoParallel(cluster)
   fitControl &lt;- trainControl(method = &quot;cv&quot;,number = 10,allowParallel = TRUE)</code></pre>
 <ul>
 <li><strong>Build model using cross validation with training set:</strong></li>
 </ul>
 <p>A random forest with 10-fold cross validation was used to optimize the model. Cross validation training subsets were of size ~17659, and cross validation test subsets were of size ~ 1963. The model was used downstream for predictions using test cases.</p>
-<pre class="r"><code>  fit &lt;- train(trainingX,trainingY, method=&quot;rf&quot;,data=training,trControl = fitControl)</code></pre>
-<pre><code>## Loading required package: randomForest</code></pre>
-<pre><code>## randomForest 4.6-12</code></pre>
-<pre><code>## Type rfNews() to see new features/changes/bug fixes.</code></pre>
-<pre><code>## 
-## Attaching package: 'randomForest'</code></pre>
-<pre><code>## The following object is masked from 'package:ggplot2':
-## 
-##     margin</code></pre>
-<pre class="r"><code>  stopCluster(cluster)
+<pre class="r"><code>  fit &lt;- train(trainingX,trainingY, method=&quot;rf&quot;,data=training,trControl = fitControl)
+  stopCluster(cluster)
   registerDoSEQ()</code></pre>
 <ul>
 <li><strong>The optimal model was used for prediction using test cases:</strong></li>
@@ -194,28 +182,28 @@ $(document).ready(function () {
 ## 
 ## No pre-processing
 ## Resampling: Cross-Validated (10 fold) 
-## Summary of sample sizes: 17661, 17659, 17660, 17658, 17661, 17661, ... 
+## Summary of sample sizes: 17659, 17660, 17660, 17659, 17660, 17660, ... 
 ## Resampling results across tuning parameters:
 ## 
 ##   mtry  Accuracy   Kappa    
-##    2    0.9956178  0.9944568
-##   27    0.9955667  0.9943921
-##   53    0.9901641  0.9875567
+##    2    0.9953627  0.9941340
+##   27    0.9953116  0.9940695
+##   53    0.9904191  0.9878795
 ## 
 ## Accuracy was used to select the optimal model using  the largest value.
 ## The final value used for the model was mtry = 2.</code></pre>
 <pre class="r"><code>  fit$resample</code></pre>
 <pre><code>##     Accuracy     Kappa Resample
-## 1  0.9949058 0.9935564   Fold02
-## 2  0.9964304 0.9954844   Fold01
-## 3  0.9969419 0.9961318   Fold03
-## 4  0.9964304 0.9954841   Fold06
-## 5  0.9954105 0.9941947   Fold05
-## 6  0.9928717 0.9909833   Fold04
-## 7  0.9964322 0.9954870   Fold07
-## 8  0.9943992 0.9929156   Fold10
-## 9  0.9974503 0.9967746   Fold09
-## 10 0.9949058 0.9935561   Fold08</code></pre>
+## 1  0.9943935 0.9929071   Fold02
+## 2  0.9923586 0.9903342   Fold01
+## 3  0.9949032 0.9935520   Fold03
+## 4  0.9938838 0.9922633   Fold06
+## 5  0.9969419 0.9961318   Fold05
+## 6  0.9938869 0.9922673   Fold04
+## 7  0.9959225 0.9948426   Fold07
+## 8  0.9954152 0.9942007   Fold10
+## 9  0.9974516 0.9967763   Fold09
+## 10 0.9984702 0.9980648   Fold08</code></pre>
 <pre class="r"><code>  confusionMatrix.train(fit)</code></pre>
 <pre><code>## Cross-Validated (10 fold) Confusion Matrix 
 ## 
@@ -226,10 +214,10 @@ $(document).ready(function () {
 ##          A 28.4  0.1  0.0  0.0  0.0
 ##          B  0.0 19.3  0.1  0.0  0.0
 ##          C  0.0  0.0 17.3  0.2  0.0
-##          D  0.0  0.0  0.0 16.2  0.0
-##          E  0.0  0.0  0.0  0.0 18.4
+##          D  0.0  0.0  0.0 16.1  0.0
+##          E  0.0  0.0  0.0  0.0 18.3
 ##                             
-##  Accuracy (average) : 0.9956</code></pre>
+##  Accuracy (average) : 0.9954</code></pre>
 <ul>
 <li><strong>The model generalizes well to the 20 test cases:</strong></li>
 </ul>
